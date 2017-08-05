@@ -6,5 +6,7 @@ The core of the algorithm has been uploaded alongside a built version for demons
 ## To use the built jar, make sure you have the lastest verson of Java installed.
 
 **G** to generate a new map
+
 **Arrow Keys** to move the camera around
+
 **- and =** to zoom
