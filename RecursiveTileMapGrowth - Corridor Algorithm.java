@@ -1,10 +1,10 @@
-    //Recursive Algorithm for corridor generation
+//Recursive Algorithm for corridor generation
     //X and Y are origin points of the corridor
     //dH and dV are horizontal and vertical directions
     //min and max length to set those ( 0 to ignore )
     //branch, end, room and stairs floats for RNG rolls
     //Priority to overwrite any existing tile type otherwise return
-    public void addCorridor(int x, int y, int dh, int dv, int maxlenght , int currentCount, float branch, float end, float room, float stairs , boolean priority, boolean justBranched,boolean showoffmode){
+    public void addCorridor(int x, int y, int dh, int dv, int maxlenght , int currentCount, float branch, float turn, float end, float room, float stairs , boolean priority, boolean justBranched,boolean showoffmode , boolean singleBranchMode, boolean singleBranchChanceMode){
 
 
         //Out of bounds
@@ -29,13 +29,15 @@
                 }
             }
 
+            currentCount++;
+
         }else{
             return;
         }
 
 
 
-        currentCount++;
+
 
         //Exceeding max length
         if(currentCount >= maxlenght){
@@ -55,15 +57,15 @@
 
                 //Special condition
                 if(random.nextBoolean()&&random.nextBoolean()){
-                    addCorridor(x+1,y, 1, 0,maxlenght,currentCount,branch,end,room,stairs , priority, true , showoffmode);
-                    addCorridor(x-1,y, -1, 0,maxlenght,currentCount,branch,end,room,stairs, priority, true, showoffmode);
+                    addCorridor(x+1,y, 1, 0,maxlenght,currentCount,branch, turn, end,room,stairs , priority, true , showoffmode , singleBranchMode, singleBranchChanceMode);
+                    addCorridor(x-1,y, -1, 0,maxlenght,currentCount,branch, turn, end,room,stairs, priority, true, showoffmode, singleBranchMode, singleBranchChanceMode);
                 }else {
 
                     //Branch X positive
                     if (random.nextBoolean())
-                        addCorridor(x + 1, y, 1, 0, maxlenght, currentCount, branch, end, room, stairs, priority, true, showoffmode);
+                        addCorridor(x + 1, y, 1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, priority, true, showoffmode, singleBranchMode, singleBranchChanceMode);
                     else
-                        addCorridor(x - 1, y, -1, 0, maxlenght, currentCount, branch, end, room, stairs, priority, true, showoffmode);
+                        addCorridor(x - 1, y, -1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, priority, true, showoffmode, singleBranchMode, singleBranchChanceMode);
                 }
 
             }//Currently Horizontal
@@ -71,17 +73,26 @@
 
                 //Special condition
                 if(random.nextBoolean()&&random.nextBoolean()){
-                    addCorridor(x,y+1, 0, 1,maxlenght,currentCount,branch,end,room,stairs, priority, true, showoffmode);
-                    addCorridor(x,y-1, 0, -1,maxlenght,currentCount,branch,end,room,stairs , priority, true, showoffmode);
+                    addCorridor(x,y+1, 0, 1,maxlenght,currentCount,branch, turn, end,room,stairs, priority, true, showoffmode , singleBranchMode, singleBranchChanceMode);
+                    addCorridor(x,y-1, 0, -1,maxlenght,currentCount,branch, turn, end,room,stairs , priority, true, showoffmode , singleBranchMode, singleBranchChanceMode);
                 }else {
 
                     //Branch Y positive
                     if (random.nextBoolean())
-                        addCorridor(x, y + 1, 0, 1, maxlenght, currentCount, branch, end, room, stairs, priority, true, showoffmode);
+                        addCorridor(x, y + 1, 0, 1, maxlenght, currentCount, branch, turn, end, room, stairs, priority, true, showoffmode, singleBranchMode, singleBranchChanceMode);
                     else
-                        addCorridor(x, y - 1, 0, -1, maxlenght, currentCount, branch, end, room, stairs, priority, true, showoffmode);
+                        addCorridor(x, y - 1, 0, -1, maxlenght, currentCount, branch, turn, end, room, stairs, priority, true, showoffmode, singleBranchMode, singleBranchChanceMode);
                 }
             }
+
+
+            if(singleBranchMode && !singleBranchChanceMode )
+                return;
+
+            if(singleBranchChanceMode && singleBranchMode && random.nextFloat() < turn)
+                return;
+
+
         }
 
         //Place entrance
@@ -114,7 +125,7 @@
         }
 
         //Step to the next corridor
-        addCorridor(x+dh,y+dv,dh,dv,maxlenght,currentCount,branch,end,room,stairs,priority, false, showoffmode);
+        addCorridor(x+dh,y+dv,dh,dv,maxlenght,currentCount,branch, turn, end,room,stairs,priority, false, showoffmode , singleBranchMode ,singleBranchChanceMode);
 
 
 
