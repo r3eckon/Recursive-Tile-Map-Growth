@@ -3,7 +3,7 @@
 A simple recursive algorithm used to generate corridors and rooms inside of a grid based tile map. 
 The core of the algorithm has been uploaded alongside a built version for demonstration purposes.
 
-![](http://i.imgur.com/TEuDaw9.png)
+![](http://i.imgur.com/TOQBizo.png)
 
 
 ## To use the built jar, make sure you have the lastest verson of Java installed.
