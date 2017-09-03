@@ -8,11 +8,23 @@ The core of the algorithm has been uploaded alongside a built version for demons
 
 ## To use the built jar, make sure you have the lastest verson of Java installed.
 
+### The title of the window will show you the current generation parameters as well as more useful information.
+
+**Original Build** is the original version of the algorithm, to compare progress.
+
+**Model Build** is the newest version of the algorithm **with** animated showoff.
+
+**Model Build - Realtime Generation** is the newest version of the algorithm **without** animated showoff.
+
+## Controls
+
 **G** to generate a new map
 
 **Arrow Keys** to move the camera around
 
 **- and =** to zoom
+
+**Numpad** to select an alternate floor
 
 ## Short Explanation
 
@@ -30,4 +42,10 @@ The algorithm then proceeds to RNG rolls, which implies generating multiple **fl
 
 - **Room** adds an entrance and calls the room generation algorithm to grow a room, the style and type of which depending on the orientation of the entrance.
 
+- **Stairs** adds stairwells towards the top or bottom of the dungeon, also creating new corridors to grow a new floor.
+
+- **Model** adds a pre made model by chosing randomly from the input list of models.
+
 More of those random parameters can be added to generate more desirable results.
+
+**Models** have been recently added and combine the manual level design capabilities of a human to the growth of the level by randomly chosing from a set of premade tile type arrays. Those models, which can be of any size and span multiple floors, are then rotated and placed by the algorithm.
