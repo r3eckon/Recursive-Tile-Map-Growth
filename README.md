@@ -26,13 +26,13 @@ The core of the algorithm has been uploaded alongside a built version for demons
 
 **Numpad** to select an alternate floor
 
-## Short Explanation
+## General Explanation
 
 The algorithm begins by checking that it is still within the bounds of the map, then checks neighboring tiles to make sure no tile types that should be avoided are nearby ( such as Rooms for Corridor tiles )
 
 After checks are complete, the **Corridor** tile type is added to the current position. Tile Types are stored a an Enum in another class and only represent an arbitrary type. Many more types can be used.
 
-The algorithm then proceeds to RNG rolls, which implies generating multiple **float** type numbers from 0 to 1 and checking if they are lower than the **Branch**, **Turn**, **End** and **Room** parameters to induce their respective effects to the current process. Since we are checking if the generated number is lower, a parameter of 1 will ensure the effect happens every time.
+The algorithm then proceeds to RNG rolls, which implies generating multiple **float** type numbers from 0 to 1 and checking if they are lower than the **Branch**, **Turn**, **End**,**Room**,**Stairs** and **Model** to induce their respective effects to the current process. Since we are checking if the generated number is lower, a parameter of 1 will ensure the effect happens every time.
 
 - **Branch** causes the corridor to branch into a perpendicular corridor, the direction of which is determined by a boolean random roll.
 
@@ -48,4 +48,32 @@ The algorithm then proceeds to RNG rolls, which implies generating multiple **fl
 
 More of those random parameters can be added to generate more desirable results.
 
+### Models
+
 **Models** have been recently added and combine the manual level design capabilities of a human to the growth of the level by randomly chosing from a set of premade tile type arrays. Those models, which can be of any size and span multiple floors, are then rotated and placed by the algorithm.
+
+Code samples for model placement, rotation and creation are included in the Source folder.
+
+### Deadend Removal
+
+**Deadends** can now be found and removed using a couple algorithms, which have been added to the Source folder. 
+
+Essentially, any **Corridor** type tile that has less than 2 non empty immediate neighbors can be considered to be deadends. They are found and removed after the map is generated to give them a cleaner layout, as seen below.
+
+**Example 1 - Before**
+
+![](http://i.imgur.com/GXrUtDr.png)
+
+**Example 1 - After**
+
+![](http://i.imgur.com/RUcvX9Y.png)
+
+**Example 2 - Before**
+
+![](http://i.imgur.com/qD2KEnF.png)
+
+**Example 2 - After**
+
+![](http://i.imgur.com/DfaXJdv.png)
+
+Of course, it is also possible to to single passes of the find+remove algorithms to simply shorten the deadends rather than completely removing them.
