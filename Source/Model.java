@@ -129,7 +129,7 @@ public class Model {
                         for(int l = 0; l < original.depth;l++){
 
                             rix = j;
-                            riy = i;
+                            riy = (original.width-1)-i;
 
 
                             rotated.width=original.height;
@@ -155,7 +155,7 @@ public class Model {
                         for (int l = 0; l < original.depth; l++) {
 
                             rix = (original.height-1)-j;
-                            riy = (original.width-1)-i;
+                            riy = i;
 
 
                             rotated.width=original.height;
