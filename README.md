@@ -77,3 +77,15 @@ Essentially, any **Corridor** type tile that has less than 2 non empty immediate
 ![](http://i.imgur.com/DfaXJdv.png)
 
 Of course, it is also possible to to single passes of the find+remove algorithms to simply shorten the deadends rather than completely removing them.
+
+### Post Generation Triggers
+
+**Post Generation Triggers** have recently been added as a way to invoke generation algorithms after the main layout has been generated. 
+
+For example, a room may include an alternate exit or entrance which is not initlally connected to the rest of the layout.
+
+PGTriggers allows the storage of which position on your map require post generation actions, which action to execute and in what orientation.
+
+For the case of our alternate room entrance, simply adding a PGTrigger at the position of this entrance with the "Grow Corridor" behavior will start a new corridor from this point and hopefully connect that alternate entrance to another part of your layout.
+
+PGTriggers can also be used to generate extra rooms, stairs and models.

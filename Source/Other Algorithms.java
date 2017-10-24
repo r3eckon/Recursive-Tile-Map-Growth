@@ -21,6 +21,42 @@
         addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Right
         addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
 
+		//The following code includes an example on how to use post generation triggers to generate the original layout.
+
+        pgtriggers.add(new PGTrigger(new Vector3f(x+1,y,l) , Orientation.Eastbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        pgtriggers.add(new PGTrigger(new Vector3f(x-1,y,l) , Orientation.Westbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        pgtriggers.add(new PGTrigger(new Vector3f(x,y+1,l) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        pgtriggers.add(new PGTrigger(new Vector3f(x,y-1,l) , Orientation.Southbound , PGTrigger.TYPE_ADDCORRIDOR ));
+
+        //addCorridor(x,y + 1, l,0,1,height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);//Upwards
+        //addCorridor(x,y - 1, l,0,-1,height/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Downwards
+        //addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Right
+        //addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
+
+        //Process post generation triggers
+
+        if(pgtriggers!=null){
+            for(PGTrigger tg : pgtriggers){
+                switch (tg.type){
+
+                    case PGTrigger.TYPE_NOP:break;
+
+                    case PGTrigger.TYPE_ADDCORRIDOR:
+                        addCorridor((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);
+                        break;
+
+                    case PGTrigger.TYPE_ADDRANDROOM:
+                        placeRandomRoom((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Room2 : TileType.Room ,(tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Entrance2 : TileType.Entrance , 2,5, (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound),showoff  );
+                        break;
+
+                    case PGTrigger.TYPE_ADDRANDMODL:
+                        placeModel((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}),false);
+                        break;
+
+                    default:break;
+                }
+            }
+        }
 
 	}
 	
