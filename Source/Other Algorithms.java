@@ -12,37 +12,64 @@
 
         Main.drawlevel=l;
 
-
+        pgtriggers=new ArrayList<PGTrigger>();
+        currentlyProcessingTriggers=false;
 
         data[x][y][l]=TileType.Spawn;
+
+        //The following code includes an example on how to use post generation triggers to generate the original layout.
+
+        //pgtriggers.add(new PGTrigger(new Vector3f(x+1,y,l) , Orientation.Eastbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        //pgtriggers.add(new PGTrigger(new Vector3f(x-1,y,l) , Orientation.Westbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        //pgtriggers.add(new PGTrigger(new Vector3f(x,y+1,l) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR ));
+        //pgtriggers.add(new PGTrigger(new Vector3f(x,y-1,l) , Orientation.Southbound , PGTrigger.TYPE_ADDCORRIDOR ));
 
         addCorridor(x,y + 1, l,0,1,height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);//Upwards
         addCorridor(x,y - 1, l,0,-1,height/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Downwards
         addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Right
         addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
 
-		//The following code includes an example on how to use post generation triggers to generate the original layout.
-
-        pgtriggers.add(new PGTrigger(new Vector3f(x+1,y,l) , Orientation.Eastbound , PGTrigger.TYPE_ADDCORRIDOR ));
-        pgtriggers.add(new PGTrigger(new Vector3f(x-1,y,l) , Orientation.Westbound , PGTrigger.TYPE_ADDCORRIDOR ));
-        pgtriggers.add(new PGTrigger(new Vector3f(x,y+1,l) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR ));
-        pgtriggers.add(new PGTrigger(new Vector3f(x,y-1,l) , Orientation.Southbound , PGTrigger.TYPE_ADDCORRIDOR ));
-
-        //addCorridor(x,y + 1, l,0,1,height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);//Upwards
-        //addCorridor(x,y - 1, l,0,-1,height/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Downwards
-        //addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Right
-        //addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
-
         //Process post generation triggers
 
+
         if(pgtriggers!=null){
+
+            currentlyProcessingTriggers=true;
             for(PGTrigger tg : pgtriggers){
+
+                pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
+                pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
+                pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
+                pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
+                pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
+
+                if(showoff){
+
+
+                    if(Main.drawlevel!=tg.pos.z){
+                        Main.drawlevel=(int)tg.pos.z;
+                    }
+
+                    renderNow(Main.drawsize);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+
+                }
+
+
+
+
                 switch (tg.type){
 
                     case PGTrigger.TYPE_NOP:break;
 
                     case PGTrigger.TYPE_ADDCORRIDOR:
                         addCorridor((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);
+                        System.out.println("Corridor Trigger Processed");
                         break;
 
                     case PGTrigger.TYPE_ADDRANDROOM:
@@ -58,7 +85,8 @@
             }
         }
 
-	}
+
+    }
 	
 
 	//Algorithm for model placement
@@ -71,6 +99,10 @@
 
         model = Model.rotate(model , Orientation.toOrientation(dh,dv));
 
+        //Boss room fucked orientation
+        Orientation pgo = ( Orientation.toOrientation(dh,dv) == Orientation.Northbound ) ? Orientation.Eastbound : ( Orientation.toOrientation(dh,dv) == Orientation.Eastbound ) ? Orientation.Southbound : ( Orientation.toOrientation(dh,dv) == Orientation.Southbound ) ? Orientation.Westbound : ( Orientation.toOrientation(dh,dv) == Orientation.Westbound ) ? Orientation.Northbound : Orientation.Northbound;
+
+        boolean isBoss=false;
 
         sx = x - model.ox;
         sy = y - model.oy;
@@ -122,7 +154,35 @@
                     cy = sy + j;
                     cl = sl + k;
 
+                    if(!isBoss &&model.model[i][j][k]==TileType.BossRoom )
+                        isBoss=true;
+
                     data[cx][cy][cl] = model.model[i][j][k];
+
+
+                        if(data[cx][cy][cl] == TileType.TriggerCorridor){
+
+                            if(!currentlyProcessingTriggers){
+                                pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), (isBoss) ? pgo : Orientation.toOrientation(dh,dv) , PGTrigger.TYPE_ADDCORRIDOR ));
+                                data[cx][cy][cl] = TileType.EntranceBoss;
+                            }else {
+                                data[cx][cy][cl] = TileType.Empty;
+                            }
+
+                        }else if(data[cx][cy][cl] == TileType.TriggerRoom){
+
+                            if(!currentlyProcessingTriggers){
+                                pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), (isBoss) ? pgo : Orientation.toOrientation(dh,dv) , PGTrigger.TYPE_ADDRANDROOM ));
+                                data[cx][cy][cl] = TileType.EntranceBoss;
+                            }else{
+                                data[cx][cy][cl] = TileType.Empty;
+                            }
+
+                        }
+
+
+
+
 
                 }
             }
