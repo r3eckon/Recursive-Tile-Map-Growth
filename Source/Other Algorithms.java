@@ -95,12 +95,21 @@
     //Indices are then calculated to make sure the model origin is placed at the current X,Y,L point
     public void placeModel(int x, int y, int l, int dh, int dv, Model model , boolean priority){
 
-        int sx, sy, sl, cx, cy, cl; //indices
+        int sx, sy, sl, cx, cy, cl , tx,ty,tl; //indices
 
-        model = Model.rotate(model , Orientation.toOrientation(dh,dv));
+        //SX,SY,SL are where the 0,0,0 point of the model are on the data
+        //CX,CY,CL are where the current X,Y,Z of the model are on the data
+        //TX,TY,TL are where the current X,Y,Z of a TRIGGER are on the data
 
-        //Boss room fucked orientation
-        Orientation pgo = ( Orientation.toOrientation(dh,dv) == Orientation.Northbound ) ? Orientation.Eastbound : ( Orientation.toOrientation(dh,dv) == Orientation.Eastbound ) ? Orientation.Southbound : ( Orientation.toOrientation(dh,dv) == Orientation.Southbound ) ? Orientation.Westbound : ( Orientation.toOrientation(dh,dv) == Orientation.Westbound ) ? Orientation.Northbound : Orientation.Northbound;
+        TileType current;
+
+        Orientation modelOrientation = Orientation.toOrientation(dh,dv);
+        Orientation triggerOrientation;
+
+
+        model = Model.rotate(model , modelOrientation);
+
+
 
         boolean isBoss=false;
 
@@ -160,33 +169,93 @@
                     data[cx][cy][cl] = model.model[i][j][k];
 
 
-                        if(data[cx][cy][cl] == TileType.TriggerCorridor){
+                    /*DEFUNCT MODEL PROCESSING CODE
 
-                            if(!currentlyProcessingTriggers){
-                                pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), (isBoss) ? pgo : Orientation.toOrientation(dh,dv) , PGTrigger.TYPE_ADDCORRIDOR ));
-                                data[cx][cy][cl] = TileType.EntranceBoss;
-                            }else {
-                                data[cx][cy][cl] = TileType.Empty;
-                            }
+                    //Detect and add post generation triggers from tile types
 
-                        }else if(data[cx][cy][cl] == TileType.TriggerRoom){
+                    current = data[cx][cy][cl];
 
-                            if(!currentlyProcessingTriggers){
-                                pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), (isBoss) ? pgo : Orientation.toOrientation(dh,dv) , PGTrigger.TYPE_ADDRANDROOM ));
-                                data[cx][cy][cl] = TileType.EntranceBoss;
-                            }else{
-                                data[cx][cy][cl] = TileType.Empty;
-                            }
+                    //Rotate the trigger's orientation relative to the model rotation
+                    triggerOrientation = Orientation.rotate(trig.orientation , modelOrientation);
 
+                    //Create a new PGTrigger object using the rotated orientation and the trigger type
+                    //Must find a way to streamline this process for usage within a GUI...
+                    //Maybe let user place the entrance instead of a trigger type
+                    //and specify triggers as new data included with model class
+                    //This seems like the optimal idea despite the need to entirely rework the PGTrigger system.
+
+
+                    if(current == TileType.TriggerCorridorNORTH || current == TileType.TriggerCorridorSOUTH || current == TileType.TriggerCorridorEAST || current == TileType.TriggerCorridorWEST ){
+
+                        if(!currentlyProcessingTriggers){
+                            pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), triggerOrientation , PGTrigger.TYPE_ADDCORRIDOR ));
+                            data[cx][cy][cl] = TileType.EntranceBoss;
+                        }else {
+                            data[cx][cy][cl] = TileType.Empty;
                         }
 
+                    }else if(current == TileType.TriggerRoomNORTH || current == TileType.TriggerRoomSOUTH || current == TileType.TriggerRoomEAST || current == TileType.TriggerRoomWEST){
+
+                        if(!currentlyProcessingTriggers){
+                            pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), triggerOrientation , PGTrigger.TYPE_ADDRANDROOM ));
+                            data[cx][cy][cl] = TileType.EntranceBoss;
+                            data[cx+dh][cy+dv][cl] = TileType.Corridor;
+                        }else{
+                            data[cx][cy][cl] = TileType.Empty;
+                        }
+
+                    }
 
 
+                    */
 
 
                 }
             }
         }
+
+        //New trigger detection process
+        //Generalized for all trigger type, orientation and position
+
+        if(model.triggers!=null){
+
+            for(PGTrigger trig : model.triggers){
+
+                //Initialize by setting trigger position in data
+                tx = sx + (int)trig.pos.x;
+                ty = sy + (int)trig.pos.y;
+                tl = sl + (int)trig.pos.z;
+
+                //First calculate the correct orientation
+                triggerOrientation = Orientation.rotate(trig.orientation , modelOrientation);
+
+                //Next, process based on trigger type
+                //First check if were not already processing triggers
+                //Then add the new trigger with it's data on the map
+                //Finish by adding needed tile types on the map
+                switch (trig.type){
+
+                    case PGTrigger.TYPE_ADDCORRIDOR:
+                        if(!currentlyProcessingTriggers){
+                            pgtriggers.add(new PGTrigger(new Vector3f(tx+dh,ty+dv,tl), triggerOrientation , PGTrigger.TYPE_ADDCORRIDOR ));
+                            data[tx][ty][tl] = TileType.EntranceBoss;
+                        }
+                        break;
+
+                    case PGTrigger.TYPE_ADDRANDROOM:
+                        if(!currentlyProcessingTriggers){
+                            pgtriggers.add(new PGTrigger(new Vector3f(tx+dh,ty+dv,tl), triggerOrientation , PGTrigger.TYPE_ADDRANDROOM ));
+                            data[tx][ty][tl] = TileType.EntranceBoss;
+                            data[tx+dh][ty+dv][tl] = TileType.Corridor;
+                        }
+
+                }
+
+            }
+
+        }
+
+
 
 
     }
