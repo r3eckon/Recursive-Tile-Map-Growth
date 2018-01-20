@@ -168,48 +168,6 @@
 
                     data[cx][cy][cl] = model.model[i][j][k];
 
-
-                    /*DEFUNCT MODEL PROCESSING CODE
-
-                    //Detect and add post generation triggers from tile types
-
-                    current = data[cx][cy][cl];
-
-                    //Rotate the trigger's orientation relative to the model rotation
-                    triggerOrientation = Orientation.rotate(trig.orientation , modelOrientation);
-
-                    //Create a new PGTrigger object using the rotated orientation and the trigger type
-                    //Must find a way to streamline this process for usage within a GUI...
-                    //Maybe let user place the entrance instead of a trigger type
-                    //and specify triggers as new data included with model class
-                    //This seems like the optimal idea despite the need to entirely rework the PGTrigger system.
-
-
-                    if(current == TileType.TriggerCorridorNORTH || current == TileType.TriggerCorridorSOUTH || current == TileType.TriggerCorridorEAST || current == TileType.TriggerCorridorWEST ){
-
-                        if(!currentlyProcessingTriggers){
-                            pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), triggerOrientation , PGTrigger.TYPE_ADDCORRIDOR ));
-                            data[cx][cy][cl] = TileType.EntranceBoss;
-                        }else {
-                            data[cx][cy][cl] = TileType.Empty;
-                        }
-
-                    }else if(current == TileType.TriggerRoomNORTH || current == TileType.TriggerRoomSOUTH || current == TileType.TriggerRoomEAST || current == TileType.TriggerRoomWEST){
-
-                        if(!currentlyProcessingTriggers){
-                            pgtriggers.add(new PGTrigger(new Vector3f(cx+dh,cy+dv,cl), triggerOrientation , PGTrigger.TYPE_ADDRANDROOM ));
-                            data[cx][cy][cl] = TileType.EntranceBoss;
-                            data[cx+dh][cy+dv][cl] = TileType.Corridor;
-                        }else{
-                            data[cx][cy][cl] = TileType.Empty;
-                        }
-
-                    }
-
-
-                    */
-
-
                 }
             }
         }
