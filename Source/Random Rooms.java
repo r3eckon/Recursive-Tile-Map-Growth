@@ -1,7 +1,7 @@
 //Algorithm for random room placement, supply your own tile types
     //and the method will grow a room in the available space.
     //Includes a way to make a room of fixed size
-    public void placeRandomRoom(int x, int y,int l, int dh, int dv, TileType roomType, TileType entranceType, int minsize, int maxsize , boolean messyMode, boolean showoffmode){
+    public void placeRandomRoom(int x, int y,int l, int dh, int dv, TileType roomType, TileType entranceType, int minsize, int maxsize , boolean messyMode, boolean showoffmode, boolean planeMode){
 
         boolean reachedDoor=false;
         lastAddedRooms = new ArrayList<>();
@@ -24,12 +24,25 @@
         currentEntranceX = currentRoomX;
         currentEntranceY = currentRoomY;
 
-        if(checkRoomNeighbors(currentRoomX+dh,currentRoomY+dv,l,roomType,entranceType)) {
-            data[currentEntranceX][currentEntranceY][l] = entranceType;
-            lastAddedRooms.add(new Vector3f(currentEntranceX, currentEntranceY, l));
-        }else{
-            return;
+
+        if(!planeMode){
+            if(checkRoomNeighbors(currentRoomX+dh,currentRoomY+dv,l,roomType,entranceType)) {
+                data[currentEntranceX][currentEntranceY][l] = entranceType;
+                lastAddedRooms.add(new Vector3f(currentEntranceX, currentEntranceY, l));
+            }else{
+                return;
+            }
+        }else
+        {
+            if(checkRoomNeighbors3D(currentRoomX+dh,currentRoomY+dv,l,roomType,entranceType)) {
+                data[currentEntranceX][currentEntranceY][l] = entranceType;
+                lastAddedRooms.add(new Vector3f(currentEntranceX, currentEntranceY, l));
+            }else{
+                return;
+            }
         }
+
+
 
 
 
@@ -56,7 +69,7 @@
                 currentRoomX = (zy)? x + i*d : currentRoomX;
                 currentRoomY = (!zy)? y + i*d : currentRoomY;
 
-                if(checkRoomNeighbors(currentRoomX,currentRoomY,l,roomType,entranceType)){
+                if((!planeMode && checkRoomNeighbors(currentRoomX,currentRoomY,l,roomType,entranceType)) || (planeMode&&checkRoomNeighbors3D(currentRoomX,currentRoomY,l,roomType,entranceType))){
                     data[currentRoomX][currentRoomY][l] = roomType;
                     currentRoomTiles++;
 

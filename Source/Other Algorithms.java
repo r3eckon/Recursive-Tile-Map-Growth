@@ -1,6 +1,5 @@
-	//Method used to spawn corridors when 'G' is pressed.
 	//Generates 4 corridors starting from a middle point
-    public void generateMap( int x, int y , float b, float t, float e, float r, float s, float m , boolean p , boolean showoff, boolean singleBranchMode , boolean singleBranchChanceMode){
+    public void generateMap( int x, int y , float b, float t, float e, float r, float s, float m , boolean p , boolean showoff, boolean singleBranchMode , boolean singleBranchChanceMode, boolean planarMode){
 
         int l = (levels == 1) ? 0 : (levels == 2 ) ? 1 : (levels >= 3) ? levels/2 : 0;
 
@@ -24,18 +23,26 @@
         //pgtriggers.add(new PGTrigger(new Vector3f(x,y+1,l) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR ));
         //pgtriggers.add(new PGTrigger(new Vector3f(x,y-1,l) , Orientation.Southbound , PGTrigger.TYPE_ADDCORRIDOR ));
 
-        addCorridor(x,y + 1, l,0,1,height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);//Upwards
-        addCorridor(x,y - 1, l,0,-1,height/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Downwards
-        addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Right
-        addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
+        //addCorridor(x,y + 1, l,0,1,height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);//Upwards
+        //addCorridor(x,y - 1, l,0,-1,height/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode);//Downwards
+        addCorridor(x+1,y, l,1,0,width/2,0,b,t,e,r,s,m,p,true, showoff, singleBranchMode, singleBranchChanceMode,planarMode);//Right
+        //addCorridor(x-1,y, l,-1,0,width/2,0,b,t,e,r,s,m,p,true, showoff,singleBranchMode, singleBranchChanceMode );//Left
 
         //Process post generation triggers
 
 
         if(pgtriggers!=null){
 
+            int cx,cy,cl,dh,dv;
+
             currentlyProcessingTriggers=true;
             for(PGTrigger tg : pgtriggers){
+
+                cx=(int)tg.pos.x;
+                cy=(int)tg.pos.y;
+                cl=(int)tg.pos.z;
+                dh = (int)Orientation.toDxDy(tg.orientation).x;
+                dv = (int)Orientation.toDxDy(tg.orientation).y;
 
                 pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
                 pushToShowoffQueue((int)tg.pos.x,(int)tg.pos.y);
@@ -68,16 +75,43 @@
                     case PGTrigger.TYPE_NOP:break;
 
                     case PGTrigger.TYPE_ADDCORRIDOR:
-                        addCorridor((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode);
+
+                        //Execute corridor growing if there is space
+                        if(data[cx][cy][cl] == TileType.Empty){
+
+                            //First process the data array on the model to add entrance
+                            data[cx-dh][cy-dv][cl]  = TileType.EntranceBoss;
+
+                            //Then grow a corridor
+                            addCorridor((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , height/2,0,b,t,e,r,s,m,p,true, showoff , singleBranchMode ,singleBranchChanceMode,planarMode);
+
+                            System.out.println("Corridor Added");
+                        }
                         System.out.println("Corridor Trigger Processed");
                         break;
 
                     case PGTrigger.TYPE_ADDRANDROOM:
-                        placeRandomRoom((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Room2 : TileType.Room ,(tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Entrance2 : TileType.Entrance , 2,5, (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound),showoff  );
+
+                        if(data[cx][cy][cl] == TileType.Empty){
+                            data[cx-dh][cy-dv][cl] = TileType.Entrance;
+                            data[cx][cy][cl] = TileType.Corridor;
+                            placeRandomRoom((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y , (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Room2 : TileType.Room ,(tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound) ? TileType.Entrance2 : TileType.Entrance , 2,5, (tg.orientation==Orientation.Northbound || tg.orientation==Orientation.Southbound),showoff,planarMode  );
+                            System.out.println("Room Added");
+                        }
+                        System.out.println("Room Trigger Processed");
                         break;
 
                     case PGTrigger.TYPE_ADDRANDMODL:
-                        placeModel((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}),false);
+
+                        if(data[cx][cy][cl] == TileType.Empty){
+                            data[cx-dh][cy-dv][cl] = TileType.Entrance;
+                            data[cx][cy][cl] = TileType.Corridor;
+                            placeModel((int)tg.pos.x,(int)tg.pos.y,(int)tg.pos.z,(int)Orientation.toDxDy(tg.orientation).x , (int)Orientation.toDxDy(tg.orientation).y, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}),false);
+                            System.out.println("Model Added");
+                        }
+
+                        System.out.println("Model Trigger Processed");
+
                         break;
 
                     default:break;
@@ -87,7 +121,7 @@
 
 
     }
-	
+
 
 	//Algorithm for model placement
     //Models are arrays of any TileTypes including a certain point acting as the origin
