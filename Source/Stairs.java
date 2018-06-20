@@ -109,4 +109,36 @@
 	//the type is compatible with being overridden.
     public boolean staircaseCheck(int x, int y, int l){
         return( (data[x][y][l]==TileType.Corridor || data[x][y][l]==TileType.Empty));
+    }	
+
+    //Algorithm for planar starcase placement
+    public boolean addStaircaseV2(int x, int y, int l, int dh, int dv, int dl){
+
+        if((x+dh) < 0 || (x+dh) > width || (y+dv) < 0 || (y+dv) > height || (l+dl) < 0 || (l+dl) >levels){
+            return false;
+        }
+
+        if(staircaseCheckV2(x,y,l) && staircaseCheckV2(x+dh,y+dv,l) && staircaseCheckV2(x,y,l+dl) && staircaseCheckV2(x+dh,y+dv,l+dl)){
+            if(dl>0){
+                data[x][y][l]=TileType.Staircase;
+                data[x+dh][y+dv][l]=TileType.Stairs;
+                data[x][y][l+dl]=TileType.Staircase;
+                data[x+dh][y+dv][l+dl]=TileType.Staircase;
+            }else{
+                data[x][y][l]=TileType.Staircase;
+                data[x+dh][y+dv][l]=TileType.Staircase;
+                data[x][y][l+dl]=TileType.Stairs;
+                data[x+dh][y+dv][l+dl]=TileType.Staircase;
+            }
+            return true;
+        }
+        return false;
+
+    }
+	
+	public boolean staircaseCheckV2(int x, int y, int l){
+
+        getNeighbors(x,y,l);
+
+        return( data[x][y][l]==TileType.Empty);
     }
