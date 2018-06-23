@@ -280,6 +280,34 @@ public class Model {
         return (northok&&southok&&westok&&eastok);
     }
 
+	 public boolean neighborCheck3D(TileType n, TileType s, TileType e, TileType w, TileType a, TileType b){
+
+        boolean northok = false, southok=false, eastok=false, westok=false, aboveok=false,belowok=false;
+
+        for(TileType t : compatibleTypes){
+            if(!northok){
+                northok=t==n;
+            }
+            if(!southok){
+                southok=t==s;
+            }
+            if(!eastok){
+                eastok=t==e;
+            }
+            if(!westok){
+                westok=t==w;
+            }
+            if(!aboveok){
+                aboveok=(t==a||a==TileType.ERROR);
+            }
+            if(!belowok){
+                belowok=(t==b||b==TileType.ERROR);
+            }
+        }
+
+        return (northok&&southok&&westok&&eastok&&aboveok&&belowok);
+    }
+	
     //Below are some manually created model prefabs
 
     public static Model Closet(){

@@ -8,11 +8,21 @@ public class PGTrigger {
     Vector3f pos;
     Orientation orientation;
     short type;
+    boolean iexec;
 
     public PGTrigger(Vector3f p, Orientation o, short t){
        pos=p;
        orientation=o;
        type=t;
+       iexec=false;
     }
+
+    public PGTrigger(Vector3f p, Orientation o, short t, boolean ie){
+        pos=p;
+        orientation=o;
+        type=t;
+        iexec=ie;
+    }
+
 
 }

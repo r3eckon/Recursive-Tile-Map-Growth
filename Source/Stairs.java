@@ -111,6 +111,25 @@
         return( (data[x][y][l]==TileType.Corridor || data[x][y][l]==TileType.Empty));
     }	
 
+    public boolean staircaseCheckV2(int x, int y, int l, IgnoreNeighborhood ignore){
+
+        getNeighbors3D(x,y,l);
+
+        //Correct 3D neighbor checking to make sure staircases do not break the layout
+        //Checks above and below the current floor before being added.
+        if(     (currentNeighborhood.north != TileType.Empty && !ignore.north) ||
+                (currentNeighborhood.south != TileType.Empty && !ignore.south) ||
+                (currentNeighborhood.west  != TileType.Empty && !ignore.west)  ||
+                (currentNeighborhood.east != TileType.Empty && !ignore.east)   ||
+                ((currentNeighborhood.above != TileType.Empty && currentNeighborhood.above != TileType.ERROR ) && !ignore.above) ||
+                ((currentNeighborhood.below != TileType.Empty && currentNeighborhood.below != TileType.ERROR ) && !ignore.below)){
+            return false;
+        }
+
+        return( data[x][y][l]==TileType.Empty);
+    }
+
+
     //Algorithm for planar starcase placement
     public boolean addStaircaseV2(int x, int y, int l, int dh, int dv, int dl){
 
@@ -118,7 +137,7 @@
             return false;
         }
 
-        if(staircaseCheckV2(x,y,l) && staircaseCheckV2(x+dh,y+dv,l) && staircaseCheckV2(x,y,l+dl) && staircaseCheckV2(x+dh,y+dv,l+dl)){
+        if(staircaseCheckV2(x,y,l, IgnoreNeighborhood.CorridorIgnore(Orientation.toOrientation(dh,dv)) ) && staircaseCheckV2(x+dh,y+dv,l,noIgnore) && staircaseCheckV2(x,y,l+dl,noIgnore) && staircaseCheckV2(x+dh,y+dv,l+dl,noIgnore)){
             if(dl>0){
                 data[x][y][l]=TileType.Staircase;
                 data[x+dh][y+dv][l]=TileType.Stairs;
@@ -135,8 +154,6 @@
         return false;
 
     }
-	
-	public boolean staircaseCheckV2(int x, int y, int l){
 
         getNeighbors(x,y,l);
 
