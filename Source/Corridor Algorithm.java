@@ -4,12 +4,20 @@
     //min and max length to set those ( 0 to ignore )
     //branch, end, room and stairs floats for RNG rolls
     //Priority to overwrite any existing tile type otherwise return
-    public void addCorridor(int x, int y, int l, int dh, int dv, int maxlenght , int currentCount, float branch, float turn, float end, float room, float stairs , float model , boolean priority, boolean justBranched,boolean showoffmode , boolean singleBranchMode, boolean singleBranchChanceMode, boolean planeMode,float csavoid){
+    public void addCorridor(int x, int y, int l, int dh, int dv, int maxlenght , int currentCount, float branch, float turn, float end, float room, float stairs , float model , boolean priority, boolean justBranched,boolean showoffmode , boolean singleBranchMode, boolean singleBranchChanceMode, boolean planeMode,float csavoid, int cto, int mlo, boolean useOffsets){
 
 
         //Out of bounds
         if(x < 0 || x >= width || y < 0 || y >= height )
             return;
+
+        //Exceeding max length
+        if(currentCount >= maxlenght){
+            System.out.println("Current Corridor Exceeded Max Length ! Count : " + currentCount + " / " + maxlenght);
+            return;
+        }else {
+            System.out.println("Current Count : " + currentCount + " / " + maxlenght);
+        }
 
         //Tile not empty and cannot overwrite
         if( data[x][y][l] != TileType.Empty && !priority){
@@ -29,10 +37,12 @@
         turn = turns = PScale.Process(scaling.mode,scaling.tval,oturn,originFlr,l,levels);
         room = rooms = PScale.Process(scaling.mode,scaling.rval,oroom,originFlr,l,levels);
         stairs = PScale.Process(scaling.mode,scaling.sval,ostairs,originFlr,l,levels);
-        model = PScale.Process(scaling.mode,scaling.mval,omodel,originFlr,l,levels);
+        model = models = PScale.Process(scaling.mode,scaling.mval,omodel,originFlr,l,levels);
         csavoid = PScale.Process(scaling.mode,scaling.cval,ocsavoid,originFlr,l,levels);
 
-        System.out.println("B : " + branch + " ~ E : " + end);
+        maxlenght = maxlengths = (int)PScale.Process(scaling.mode,scaling.mlval,omaxlength,originFlr,l,levels)+((useOffsets) ? mlo:0);
+
+
 
 
         //Place corridor tile
@@ -47,25 +57,9 @@
                 if(checkIncompatibleTileNeighbors(x,y,l,corridorSelfAvoidanceList,currentIgnore)){
 
                     if(!(data[x][y][l] == TileType.Staircase || data[x][y][l] == TileType.Stairs))
-                        data[x][y][l] = TileType.Corridor;
-
-
-                    if(showoffmode){
-                        if(Main.drawlevel!=l)
-                            Main.drawlevel=l;
-                        renderNow(Main.drawsize);
-                        try {
-                            Thread.sleep(showoffwait);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    currentCount++;
+                        data[x][y][l] = TileType.Corridor;currentCount++;
 
                 }else{
-
-
 
                     return;
                 }
@@ -73,25 +67,9 @@
                 if(checkIncompatibleTileNeighbors(x,y,l,corridorAvoidanceList,currentIgnore)){
 
                     if(!(data[x][y][l] == TileType.Staircase || data[x][y][l] == TileType.Stairs))
-                        data[x][y][l] = TileType.Corridor;
-
-
-                    if(showoffmode){
-                        if(Main.drawlevel!=l)
-                            Main.drawlevel=l;
-                        renderNow(Main.drawsize);
-                        try {
-                            Thread.sleep(showoffwait);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    currentCount++;
+                        data[x][y][l] = TileType.Corridor;currentCount++;
 
                 }else{
-
-
 
                     return;
                 }
@@ -106,21 +84,7 @@
                 if(checkIncompatibleTileNeighbors3D(x,y,l,corridorSelfAvoidanceList,currentIgnore)){
 
                     if(!(data[x][y][l] == TileType.Staircase || data[x][y][l] == TileType.Stairs))
-                        data[x][y][l] = TileType.Corridor;
-
-
-                    if(showoffmode){
-                        if(Main.drawlevel!=l)
-                            Main.drawlevel=l;
-                        renderNow(Main.drawsize);
-                        try {
-                            Thread.sleep(showoffwait);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    currentCount++;
+                        data[x][y][l] = TileType.Corridor;currentCount++;
 
                 }else{
                     return;
@@ -129,21 +93,7 @@
                 if(checkIncompatibleTileNeighbors3D(x,y,l,corridorAvoidanceList,currentIgnore)){
 
                     if(!(data[x][y][l] == TileType.Staircase || data[x][y][l] == TileType.Stairs))
-                        data[x][y][l] = TileType.Corridor;
-
-
-                    if(showoffmode){
-                        if(Main.drawlevel!=l)
-                            Main.drawlevel=l;
-                        renderNow(Main.drawsize);
-                        try {
-                            Thread.sleep(showoffwait);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    currentCount++;
+                        data[x][y][l] = TileType.Corridor;currentCount++;
 
                 }else{
                     return;
@@ -157,11 +107,34 @@
 
 
 
+        //Check if the corridor has been added
+        if(data[x][y][l] == TileType.Corridor){
+            //If the corridor is furthest from the spawn point, use it as current furthest path
+            if(currentCount > longestPath){
+                longestPath = currentCount;
+                lastCorridor = new Vector3f(x,y,l);
+            }
 
-        //Exceeding max length
-        if(currentCount >= maxlenght){
-            return;
         }
+
+        if(maxlengths>topLength)
+            topLength=maxlengths;
+
+        currentCounts = currentCount;
+
+
+        if(showoffmode){
+            if(Main.drawlevel!=l)
+                Main.drawlevel=l;
+            renderNow(Main.drawsize);
+            try {
+                Thread.sleep(showoffwait);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
 
         //RNG module...
 
@@ -176,15 +149,15 @@
 
                 //Special condition
                 if(random.nextBoolean()&&random.nextBoolean()){
-                    addCorridor(x+1,y,l, 1, 0,maxlenght,currentCount,branch, turn, end,room,stairs , model , priority, true , showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
-                    addCorridor(x-1,y,l, -1, 0,maxlenght,currentCount,branch, turn, end,room,stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                    addCorridor(x+1,y,l, 1, 0,maxlenght,currentCount,branch, turn, end,room,stairs , model , priority, true , showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
+                    addCorridor(x-1,y,l, -1, 0,maxlenght,currentCount,branch, turn, end,room,stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                 }else {
 
                     //Branch X positive
                     if (random.nextBoolean())
-                        addCorridor(x + 1, y,l, 1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x + 1, y,l, 1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                     else
-                        addCorridor(x - 1, y,l, -1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x - 1, y,l, -1, 0, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                 }
 
             }//Currently Horizontal
@@ -192,15 +165,15 @@
 
                 //Special condition
                 if(random.nextBoolean()&&random.nextBoolean()){
-                    addCorridor(x,y+1,l, 0, 1,maxlenght,currentCount,branch, turn, end,room,stairs, model ,priority, true, showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
-                    addCorridor(x,y-1,l, 0, -1,maxlenght,currentCount,branch, turn, end,room,stairs , model ,priority, true, showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                    addCorridor(x,y+1,l, 0, 1,maxlenght,currentCount,branch, turn, end,room,stairs, model ,priority, true, showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
+                    addCorridor(x,y-1,l, 0, -1,maxlenght,currentCount,branch, turn, end,room,stairs , model ,priority, true, showoffmode , singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                 }else {
 
                     //Branch Y positive
                     if (random.nextBoolean())
-                        addCorridor(x, y + 1,l, 0, 1, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x, y + 1,l, 0, 1, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                     else
-                        addCorridor(x, y - 1,l, 0, -1, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x, y - 1,l, 0, -1, maxlenght, currentCount, branch, turn, end, room, stairs, model ,priority, true, showoffmode, singleBranchMode, singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
                 }
             }
 
@@ -238,8 +211,8 @@
 
             }
 
-            //Step to the next corridor
-            addCorridor(x+dh,y+dv,l,dh,dv,maxlenght,currentCount,branch, turn, end,room,stairs,model ,priority, false, showoffmode , singleBranchMode ,singleBranchChanceMode,planeMode,csavoid);
+            //Step to the next corridor right away
+            //addCorridor(x+dh,y+dv,l,dh,dv,maxlenght,currentCount,branch, turn, end,room,stairs,model ,priority, false, showoffmode , singleBranchMode ,singleBranchChanceMode,planeMode,csavoid);
 
 
         }
@@ -263,10 +236,10 @@
             if(!planeMode){
                 if(placeStaircase(x,y,l,lld,showoffmode)){
 
-                    addCorridor(x,y,l+lld,1,0, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
-                    addCorridor(x,y,l+lld,-1,0, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
-                    addCorridor(x,y,l+lld,0,1, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
-                    addCorridor(x,y,l+lld,0,-1, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                    addCorridor(x,y,l+lld,1,0, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
+                    addCorridor(x,y,l+lld,-1,0, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
+                    addCorridor(x,y,l+lld,0,1, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
+                    addCorridor(x,y,l+lld,0,-1, maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
                     Main.drawlevel=l;
                     //End corridor
@@ -311,7 +284,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -356,7 +329,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -405,7 +378,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -461,7 +434,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -510,7 +483,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -553,7 +526,7 @@
                         }
 
 
-                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid);
+                        addCorridor(x+dh*3,y+dv*3,l+lld,dh,dv,maxlenght,currentCount+2,branch,turn,end,room,stairs,model ,priority,true,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
                         if(showoffmode){
@@ -587,48 +560,73 @@
         //Test for model placement
         if(random.nextFloat() < model){
 
+            //Gets a random model
+            modelChosen=false;
+            currentModel=null;
+            mn=0;
+            do{
+                ma = new Model[availableModels.size()];
+                currentModel = Model.pickRandomChance(availableModels.toArray(ma), random.nextFloat());
+                currentModelIndex = availableModels.indexOf(currentModel);
+                currentModel = Model.copy(currentModel);//Dereference arrays
 
-            //currently horizontal
-            if(dv == 0){
+                //Return if no models are available
+                if(currentModel == null)
+                    return;
 
-                //Place northbound
-                if(random.nextBoolean()){
-                    placeModel(x, y+1, l, 0 , 1, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}) , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid );
-                }else{
-                    placeModel(x, y-1, l, 0 , -1, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}), false ,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid );
+                if(currentModel.maxCount==-1){
+                    modelChosen=true;
+                }else if(currentModel.maxCount-1>=0){
+                    modelChosen=true;
                 }
 
+                mn++;//Increment maximum try counter to avoid looping forever
+            }while (!modelChosen && mn < 100);
+
+            //Try adding the chosen model
+            if(modelChosen){
+
+                System.out.println("CHOSEN MODEL " + currentModel.type + " WITH " + currentModel.maxCount + " REMAINING USES");
+
+                //currently horizontal
+                if(dv == 0){
+
+                    //Place northbound
+                    if(random.nextBoolean()){
+                        placeModel(x, y+1, l, 0 , 1, currentModel , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid ,maxlenght,currentCount ,cto,mlo);
+                    }else{
+                        placeModel(x, y-1, l, 0 , -1, currentModel, false ,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,maxlenght ,currentCount ,cto,mlo);
+                    }
 
 
-            }else{
 
-
-                //Place eastbound
-                if(random.nextBoolean()){
-                    placeModel(x+1 , y , l , 1 , 0, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}) , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid );
                 }else{
-                    placeModel(x-1 , y , l , -1 , 0, Model.pickRandom(new Model[]{Model.BigCloset(), Model.BossRoom(), Model.TallCloset(), Model.Closet()}) , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid );
+
+
+                    //Place eastbound
+                    if(random.nextBoolean()){
+                        placeModel(x+1 , y , l , 1 , 0, currentModel , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid ,maxlenght,currentCount ,cto,mlo);
+                    }else{
+                        placeModel(x-1 , y , l , -1 , 0, currentModel , false,branch,turn,end,room,stairs,model,justBranched,showoffmode,singleBranchMode,singleBranchChanceMode,planeMode,csavoid,maxlenght ,currentCount,cto,mlo);
+                    }
+
+
                 }
 
+                if(showoffmode){
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
 
             }
-
-            if(showoffmode){
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
 
         }
 
-
-
         //Step to the next corridor
-        addCorridor(x+dh,y+dv,l,dh,dv,maxlenght,currentCount,branch, turn, end,room,stairs,model ,priority, false, showoffmode , singleBranchMode ,singleBranchChanceMode,planeMode,csavoid);
+        addCorridor(x+dh,y+dv,l,dh,dv,maxlenght,currentCount,branch, turn, end,room,stairs,model ,priority, false, showoffmode , singleBranchMode ,singleBranchChanceMode,planeMode,csavoid,cto,mlo,useOffsets);
 
 
 

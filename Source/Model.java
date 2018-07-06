@@ -19,11 +19,59 @@ public class Model {
 
     public PGTrigger[] triggers;
 
+    public String type;//Custom Type,
+    public int maxCount;//Max Count ( -1 = infinite ) &
+    public float spawnChance;//Spawn chance like item spawner system
+
     static int rix,riy;//Current rotation parameters
     static TileType[][][] buildData; //Current model data
     static ArrayList<PGTrigger> triggerList;
 
+
+
     //Constructors
+
+    //Fully featured model with triggers, type, unique & spawnchance
+    public Model(int ox, int oy, int ol, TileType[][][] model , TileType[] compatibleTypes , TileType[] types, PGTrigger[] trigs,String type, int mc, float sc ){
+
+        this.ox=ox;
+        this.oy=oy;
+        this.ol=ol;
+        this.model=model;
+        this.compatibleTypes=compatibleTypes;
+        this.typesToCheck=types;
+        this.triggers = trigs;
+        this.type = type;
+        this.maxCount=mc;
+        this.spawnChance=sc;
+
+        depth= model[0][0].length;
+        height = model[0].length;
+        width = model.length;
+        orientation = Orientation.Northbound;
+
+    }
+
+    //Model without any triggers but with type, unique & spawnchance
+    public Model(int ox, int oy, int ol, TileType[][][] model , TileType[] compatibleTypes , TileType[] types ,String type, int mc, float sc ){
+
+        this.ox=ox;
+        this.oy=oy;
+        this.ol=ol;
+        this.model=model;
+        this.compatibleTypes=compatibleTypes;
+        this.typesToCheck=types;
+        this.type = type;
+        this.maxCount=mc;
+        this.spawnChance=sc;
+
+
+        depth= model[0][0].length;
+        height = model[0].length;
+        width = model.length;
+        orientation = Orientation.Northbound;
+
+    }
 
     //Fully featured model with triggers
     public Model(int ox, int oy, int ol, TileType[][][] model , TileType[] compatibleTypes , TileType[] types, PGTrigger[] trigs ){
@@ -122,6 +170,10 @@ public class Model {
                 newModel.triggers[i] = m.triggers[i];
             }
         }
+
+        newModel.type = m.type;
+        newModel.maxCount = m.maxCount;
+        newModel.spawnChance = m.spawnChance;
 
         return newModel;
     }
@@ -258,6 +310,21 @@ public class Model {
         return models[Main.rand.nextInt(models.length)];
     }
 
+    public static Model pickRandomChance(Model[] models, float n){
+
+        List<Model> canPick = new ArrayList<Model>();
+
+        for(int i=0;i<models.length;i++){
+
+            if(n < models[i].spawnChance){
+                canPick.add(models[i]);
+            }
+
+        }
+
+        return canPick.get(Main.rand.nextInt(canPick.size()));
+    }
+
     public boolean neighborCheck(TileType n, TileType s, TileType e, TileType w){
 
         boolean northok = false, southok=false, eastok=false, westok=false;
@@ -280,7 +347,7 @@ public class Model {
         return (northok&&southok&&westok&&eastok);
     }
 
-	 public boolean neighborCheck3D(TileType n, TileType s, TileType e, TileType w, TileType a, TileType b){
+    public boolean neighborCheck3D(TileType n, TileType s, TileType e, TileType w, TileType a, TileType b){
 
         boolean northok = false, southok=false, eastok=false, westok=false, aboveok=false,belowok=false;
 
@@ -307,187 +374,209 @@ public class Model {
 
         return (northok&&southok&&westok&&eastok&&aboveok&&belowok);
     }
-	
+
     //Below are some manually created model prefabs
 
     public static Model Closet(){
 
         buildData = new TileType[3][4][1];
 
-        buildData[0][0][0] = TileType.Empty;         
-        buildData[1][0][0] = TileType.EntranceCloset;
-        buildData[2][0][0] = TileType.Empty;         
+        buildData[0][0][0] = TileType.Empty;         // O X X
+        buildData[1][0][0] = TileType.EntranceCloset;// X O X
+        buildData[2][0][0] = TileType.Empty;         // X X O
 
-        buildData[0][1][0] = TileType.RoomCloset;    
-        buildData[1][1][0] = TileType.RoomCloset;    
-        buildData[2][1][0] = TileType.Empty;        
+        buildData[0][1][0] = TileType.RoomCloset;    // O X X
+        buildData[1][1][0] = TileType.RoomCloset;    // X O X
+        buildData[2][1][0] = TileType.Empty;         // X X O
 
-        buildData[0][2][0] = TileType.RoomCloset;   
-        buildData[1][2][0] = TileType.RoomCloset;    
-        buildData[2][2][0] = TileType.Empty;        
+        buildData[0][2][0] = TileType.RoomCloset;    // O X X
+        buildData[1][2][0] = TileType.RoomCloset;    // X O X
+        buildData[2][2][0] = TileType.Empty;         // X X O
 
-        buildData[0][3][0] = TileType.Empty;//ADDING NORTHBOUND TRIGGER HERE
-        buildData[1][3][0] = TileType.Empty;         
-        buildData[2][3][0] = TileType.Empty;         
+        buildData[0][3][0] = TileType.Empty;          // O X X ADDING NORTHBOUND TRIGGER HERE
+        buildData[1][3][0] = TileType.Empty;          // X O X
+        buildData[2][3][0] = TileType.Empty;          // X X O
 
         triggerList = new ArrayList<>();
-        triggerList.add(new PGTrigger(new Vector3f(0,3,0) , Orientation.Northbound , PGTrigger.TYPE_ADDRANDROOM));
+        triggerList.add(new PGTrigger(new Vector3f(0,3,0) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR));
 
-        return new Model(1,0,0 , buildData , new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset} , triggerList.toArray(new PGTrigger[]{}));
+        return new Model(1,0,0 , buildData , new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset} , triggerList.toArray(new PGTrigger[]{}), "Closet", -1, 1);
     }
 
     public static Model TallCloset(){
 
         buildData = new TileType[3][3][3];
 
-        buildData[0][0][0] = TileType.Empty;
-        buildData[1][0][0] = TileType.Empty;
-        buildData[2][0][0] = TileType.Empty;
+        buildData[0][0][0] = TileType.Empty;         // O X X
+        buildData[1][0][0] = TileType.Empty;         // X O X
+        buildData[2][0][0] = TileType.Empty;         // X X O
 
-        buildData[0][1][0] = TileType.RoomCloset;
-        buildData[1][1][0] = TileType.RoomCloset;
-        buildData[2][1][0] = TileType.RoomCloset;
+        buildData[0][1][0] = TileType.RoomCloset;    // O X X
+        buildData[1][1][0] = TileType.RoomCloset;    // X O X
+        buildData[2][1][0] = TileType.RoomCloset;    // X X O
 
-        buildData[0][2][0] = TileType.RoomCloset;    
-        buildData[1][2][0] = TileType.RoomCloset;    
-        buildData[2][2][0] = TileType.RoomCloset;    
+        buildData[0][2][0] = TileType.RoomCloset;    // O X X
+        buildData[1][2][0] = TileType.RoomCloset;    // X O X
+        buildData[2][2][0] = TileType.RoomCloset;    // X X O
 
-        buildData[0][0][1] = TileType.Empty;         
-        buildData[1][0][1] = TileType.EntranceCloset;
-        buildData[2][0][1] = TileType.Empty;        
+        buildData[0][0][1] = TileType.Empty;         // O X X
+        buildData[1][0][1] = TileType.EntranceCloset;// X O X
+        buildData[2][0][1] = TileType.Empty;         // X X O
 
-        buildData[0][1][1] = TileType.RoomCloset;    
-        buildData[1][1][1] = TileType.RoomCloset;    
-        buildData[2][1][1] = TileType.RoomCloset;    
+        buildData[0][1][1] = TileType.RoomCloset;    // O X X
+        buildData[1][1][1] = TileType.RoomCloset;    // X O X
+        buildData[2][1][1] = TileType.RoomCloset;    // X X O
 
-        buildData[0][2][1] = TileType.RoomCloset;    
-        buildData[1][2][1] = TileType.RoomCloset;    
-        buildData[2][2][1] = TileType.RoomCloset;    
+        buildData[0][2][1] = TileType.RoomCloset;    // O X X
+        buildData[1][2][1] = TileType.RoomCloset;    // X O X
+        buildData[2][2][1] = TileType.RoomCloset;    // X X O
 
-        buildData[0][0][2] = TileType.Empty;         
-        buildData[1][0][2] = TileType.Empty;         
-        buildData[2][0][2] = TileType.Empty;         
+        buildData[0][0][2] = TileType.Empty;         // O X X
+        buildData[1][0][2] = TileType.Empty;         // X O X
+        buildData[2][0][2] = TileType.Empty;         // X X O
 
-        buildData[0][1][2] = TileType.RoomCloset;    
-        buildData[1][1][2] = TileType.RoomCloset;    
-        buildData[2][1][2] = TileType.RoomCloset;    
+        buildData[0][1][2] = TileType.RoomCloset;    // O X X
+        buildData[1][1][2] = TileType.RoomCloset;    // X O X
+        buildData[2][1][2] = TileType.RoomCloset;    // X X O
 
-        buildData[0][2][2] = TileType.RoomCloset;   
-        buildData[1][2][2] = TileType.RoomCloset;    
-        buildData[2][2][2] = TileType.RoomCloset;    
+        buildData[0][2][2] = TileType.RoomCloset;    // O X X
+        buildData[1][2][2] = TileType.RoomCloset;    // X O X
+        buildData[2][2][2] = TileType.RoomCloset;    // X X O
 
 
-        return new Model(1,0,1 , buildData , new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset});
+        return new Model(1,0,1 , buildData , new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset}, "TallCloset",2,.7f);
     }
 
     public static Model BigCloset(){
 
         buildData = new TileType[6][6][1];
 
-        buildData[0][0][0] = TileType.Empty;         
-        buildData[1][0][0] = TileType.Empty;         
-        buildData[2][0][0] = TileType.EntranceCloset;
-        buildData[3][0][0] = TileType.Empty;        
-        buildData[4][0][0] = TileType.Empty;        
-        buildData[5][0][0] = TileType.Empty;         
+        buildData[0][0][0] = TileType.Empty;         // O X X X
+        buildData[1][0][0] = TileType.Empty;         // X O X X
+        buildData[2][0][0] = TileType.EntranceCloset;// X X O X
+        buildData[3][0][0] = TileType.Empty;         // X X X O
+        buildData[4][0][0] = TileType.Empty;         // X X O X
+        buildData[5][0][0] = TileType.Empty;         // X X X O
 
-        buildData[0][1][0] = TileType.RoomCloset;   
-        buildData[1][1][0] = TileType.RoomCloset;   
-        buildData[2][1][0] = TileType.RoomCloset;  
-        buildData[3][1][0] = TileType.RoomCloset;   
-        buildData[4][1][0] = TileType.RoomCloset;    
-        buildData[5][1][0] = TileType.RoomCloset;    
+        buildData[0][1][0] = TileType.RoomCloset;    // O X X X
+        buildData[1][1][0] = TileType.RoomCloset;    // X O X X
+        buildData[2][1][0] = TileType.RoomCloset;    // X X O X
+        buildData[3][1][0] = TileType.RoomCloset;    // X X X O
+        buildData[4][1][0] = TileType.RoomCloset;    // X X O X
+        buildData[5][1][0] = TileType.RoomCloset;    // X X X O
 
-        buildData[0][2][0] = TileType.RoomCloset;        
-        buildData[1][2][0] = TileType.EntranceCloset;   
-        buildData[2][2][0] = TileType.EntranceCloset;   
-        buildData[3][2][0] = TileType.EntranceCloset;   
-        buildData[4][2][0] = TileType.EntranceCloset;   
-        buildData[5][2][0] = TileType.RoomCloset;   
+        buildData[0][2][0] = TileType.RoomCloset;        // O X X X
+        buildData[1][2][0] = TileType.EntranceCloset;    // X O X X
+        buildData[2][2][0] = TileType.EntranceCloset;    // X X O X
+        buildData[3][2][0] = TileType.EntranceCloset;    // X X X O
+        buildData[4][2][0] = TileType.EntranceCloset;    // X X O X
+        buildData[5][2][0] = TileType.RoomCloset;    // X X X O
 
-        buildData[0][3][0] = TileType.RoomCloset;  
-        buildData[1][3][0] = TileType.EntranceCloset;  
-        buildData[2][3][0] = TileType.RoomCloset;   
-        buildData[3][3][0] = TileType.RoomCloset;   
-        buildData[4][3][0] = TileType.EntranceCloset;   
-        buildData[5][3][0] = TileType.RoomCloset;   
+        buildData[0][3][0] = TileType.RoomCloset;    // O X X X
+        buildData[1][3][0] = TileType.EntranceCloset;    // X O X X
+        buildData[2][3][0] = TileType.RoomCloset;    // X X O X
+        buildData[3][3][0] = TileType.RoomCloset;    // X X X O
+        buildData[4][3][0] = TileType.EntranceCloset;    // X X O X
+        buildData[5][3][0] = TileType.RoomCloset;    // X X X O
 
-        buildData[0][4][0] = TileType.RoomCloset;   
-        buildData[1][4][0] = TileType.EntranceCloset;   
-        buildData[2][4][0] = TileType.EntranceCloset;    
-        buildData[3][4][0] = TileType.EntranceCloset;  
-        buildData[4][4][0] = TileType.EntranceCloset;   
-        buildData[5][4][0] = TileType.RoomCloset;   
+        buildData[0][4][0] = TileType.RoomCloset;    // O X X X
+        buildData[1][4][0] = TileType.EntranceCloset;    // X O X X
+        buildData[2][4][0] = TileType.EntranceCloset;    // X X O X
+        buildData[3][4][0] = TileType.EntranceCloset;    // X X X O
+        buildData[4][4][0] = TileType.EntranceCloset;    // X X O X
+        buildData[5][4][0] = TileType.RoomCloset;    // X X X O
 
-        buildData[0][5][0] = TileType.RoomCloset;   
-        buildData[1][5][0] = TileType.RoomCloset;    
-        buildData[2][5][0] = TileType.RoomCloset;    
-        buildData[3][5][0] = TileType.RoomCloset;    
-        buildData[4][5][0] = TileType.RoomCloset;   
-        buildData[5][5][0] = TileType.RoomCloset;   
+        buildData[0][5][0] = TileType.RoomCloset;    // O X X X
+        buildData[1][5][0] = TileType.RoomCloset;    // X O X X
+        buildData[2][5][0] = TileType.RoomCloset;    // X X O X
+        buildData[3][5][0] = TileType.RoomCloset;    // X X X O
+        buildData[4][5][0] = TileType.RoomCloset;    // X X O X
+        buildData[5][5][0] = TileType.RoomCloset;    // X X X O
 
 
-        return new Model(2,0,0 , buildData,new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset});
+        return new Model(2,0,0 , buildData,new TileType[]{TileType.Empty }, new TileType[]{TileType.RoomCloset}, "RoomCloset", 1 , 0.25f);
     }
 
     public static Model BossRoom(){
 
         buildData = new TileType[10][10][2];
 
-        buildData[0][0][0] = TileType.Empty;      
-        buildData[1][0][0] = TileType.Empty;         
-        buildData[2][0][0] = TileType.Empty;  
-        buildData[3][0][0] = TileType.Empty;  
-        buildData[4][0][0] = TileType.EntranceBoss;         
-        buildData[5][0][0] = TileType.EntranceBoss;         
-        buildData[6][0][0] = TileType.Empty;        
-        buildData[7][0][0] = TileType.Empty;       
-        buildData[8][0][0] = TileType.Empty;       
-        buildData[9][0][0] = TileType.Empty;        
+        buildData[0][0][0] = TileType.Empty;         // O X X X
+        buildData[1][0][0] = TileType.Empty;         // X O X X
+        buildData[2][0][0] = TileType.Empty;  // X X O X
+        buildData[3][0][0] = TileType.Empty;  // X X X O
+        buildData[4][0][0] = TileType.EntranceBoss;         // X X O X
+        buildData[5][0][0] = TileType.EntranceBoss;         // X X X O
+        buildData[6][0][0] = TileType.Empty;         // X X O X
+        buildData[7][0][0] = TileType.Empty;         // X X X O
+        buildData[8][0][0] = TileType.Empty;         // X X O X
+        buildData[9][0][0] = TileType.Empty;         // X X X O
 
-        for(int i = 1; i < 10; i++){
-            buildData[0][i][0] = TileType.BossRoom;    
-            buildData[1][i][0] = TileType.BossRoom;        
-            buildData[2][i][0] = TileType.BossRoom; 
-            buildData[3][i][0] = TileType.BossRoom;  
-            buildData[4][i][0] = TileType.BossRoom;         
-            buildData[5][i][0] = TileType.BossRoom;        
-            buildData[6][i][0] = TileType.BossRoom;         
-            buildData[7][i][0] = TileType.BossRoom;        
-            buildData[8][i][0] = TileType.BossRoom;        
-            buildData[9][i][0] = TileType.BossRoom;         
+        for(int i = 1; i < 9; i++){
+            buildData[0][i][0] = TileType.BossRoom;         // O X X X
+            buildData[1][i][0] = TileType.BossRoom;         // X O X X
+            buildData[2][i][0] = TileType.BossRoom;  // X X O X
+            buildData[3][i][0] = TileType.BossRoom;  // X X X O
+            buildData[4][i][0] = TileType.BossRoom;         // X X O X
+            buildData[5][i][0] = TileType.BossRoom;         // X X X O
+            buildData[6][i][0] = TileType.BossRoom;         // X X O X
+            buildData[7][i][0] = TileType.BossRoom;         // X X X O
+            buildData[8][i][0] = TileType.BossRoom;         // X X O X
+            buildData[9][i][0] = TileType.BossRoom;         // X X X O
         }
 
-        for(int i = 0; i < 9; i++){
-            buildData[0][i][1] = TileType.BossRoom;        
-            buildData[1][i][1] = TileType.BossRoom;      
-            buildData[2][i][1] = TileType.BossRoom; 
-            buildData[3][i][1] = TileType.BossRoom; 
-            buildData[4][i][1] = TileType.BossRoom;       
-            buildData[5][i][1] = TileType.BossRoom;       
-            buildData[6][i][1] = TileType.BossRoom;         
-            buildData[7][i][1] = TileType.BossRoom;       
-            buildData[8][i][1] = TileType.BossRoom;       
-            buildData[9][i][1] = TileType.BossRoom;        
+        for(int i = 1; i < 9; i++){
+            buildData[0][i][1] = TileType.BossRoom;         // O X X X
+            buildData[1][i][1] = TileType.BossRoom;         // X O X X
+            buildData[2][i][1] = TileType.BossRoom;  // X X O X
+            buildData[3][i][1] = TileType.BossRoom;  // X X X O
+            buildData[4][i][1] = TileType.BossRoom;         // X X O X
+            buildData[5][i][1] = TileType.BossRoom;         // X X X O
+            buildData[6][i][1] = TileType.BossRoom;         // X X O X
+            buildData[7][i][1] = TileType.BossRoom;         // X X X O
+            buildData[8][i][1] = TileType.BossRoom;         // X X O X
+            buildData[9][i][1] = TileType.BossRoom;         // X X X O
         }
 
-        buildData[0][9][1] = TileType.Empty;        
-        buildData[1][9][1] = TileType.Empty;         
-        buildData[2][9][1] = TileType.Empty;       
-        buildData[3][9][1] = TileType.Empty;        
-        buildData[4][9][1] = TileType.Empty; //TRIGGER HERE
-        buildData[5][9][1] = TileType.Empty; //TRIGGER HERE
-        buildData[6][9][1] = TileType.Empty;        
-        buildData[7][9][1] = TileType.Empty;         
-        buildData[8][9][1] = TileType.Empty;         
-        buildData[9][9][1] = TileType.Empty;         
+        buildData[0][9][1] = TileType.Empty;         // O X X X
+        buildData[1][9][1] = TileType.Empty;         // X O X X
+        buildData[2][9][1] = TileType.Empty;         // X X O X
+        buildData[3][9][1] = TileType.Empty;         // X X X O
+        buildData[4][9][1] = TileType.Empty;         // X X O X TRIGGER HERE
+        buildData[5][9][1] = TileType.Empty;         // X X X O TRIGGER HERE
+        buildData[6][9][1] = TileType.Empty;         // X X O X
+        buildData[7][9][1] = TileType.Empty;         // X X X O
+        buildData[8][9][1] = TileType.Empty;         // X X O X
+        buildData[9][9][1] = TileType.Empty;         // X X X O
+
+        buildData[0][9][0] = TileType.Empty;         // O X X X
+        buildData[1][9][0] = TileType.Empty;         // X O X X
+        buildData[2][9][0] = TileType.Empty;         // X X O X
+        buildData[3][9][0] = TileType.Empty;         // X X X O
+        buildData[4][9][0] = TileType.Empty;         // X X O X TRIGGER HERE
+        buildData[5][9][0] = TileType.Empty;         // X X X O TRIGGER HERE
+        buildData[6][9][0] = TileType.Empty;         // X X O X
+        buildData[7][9][0] = TileType.Empty;         // X X X O
+        buildData[8][9][0] = TileType.Empty;         // X X O X
+        buildData[9][9][0] = TileType.Empty;         // X X X O
+
+        buildData[0][0][1] = TileType.Empty;         // O X X X
+        buildData[1][0][1] = TileType.Empty;         // X O X X
+        buildData[2][0][1] = TileType.Empty;         // X X O X
+        buildData[3][0][1] = TileType.Empty;         // X X X O
+        buildData[4][0][1] = TileType.Empty;         // X X O X
+        buildData[5][0][1] = TileType.Empty;         // X X X O
+        buildData[6][0][1] = TileType.Empty;         // X X O X
+        buildData[7][0][1] = TileType.Empty;         // X X X O
+        buildData[8][0][1] = TileType.Empty;         // X X O X
+        buildData[9][0][1] = TileType.Empty;         // X X X O
 
         triggerList = new ArrayList<PGTrigger>();
         triggerList.add(new PGTrigger(new Vector3f(4,9,1) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR));
         triggerList.add(new PGTrigger(new Vector3f(5,9,1) , Orientation.Northbound , PGTrigger.TYPE_ADDCORRIDOR));
 
 
-        return new Model(5,0,0 , buildData,new TileType[]{TileType.Empty }, new TileType[]{TileType.BossRoom} , triggerList.toArray(new PGTrigger[]{}));
+        return new Model(5,0,0 , buildData,new TileType[]{TileType.Empty }, new TileType[]{TileType.BossRoom} , triggerList.toArray(new PGTrigger[]{}) , "BossRoom", 1, 0.1f);
     }
 
 
